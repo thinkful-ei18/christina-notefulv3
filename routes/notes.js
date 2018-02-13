@@ -33,17 +33,21 @@ router.get('/notes', (req, res, next) => {
 
 /* ========== GET/READ A SINGLE ITEM ========== */
 router.get('/notes/:id', (req, res, next) => {
-  console.log(typeof req.params.id);
   Note
     // .find({'_id': req.params.id})
     .findById(req.params.id)
-    .then(results => {
-      res.json(results);
+    .then(result => {
+      if (result) {
+        return res.json(result);
+      }
+      const err = new Error('No note with this ID');
+      err.status = 404;
+      next(err);
     })
     .catch(err => {
-      next(err);
-      console.log(err);
+      err.message('There was a problem with the server');
       res.status(500).json({ message: 'Internal server error' });
+      next(err);
     });
 
 });
