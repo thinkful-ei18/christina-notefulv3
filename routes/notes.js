@@ -4,23 +4,47 @@ const express = require('express');
 // Create an router instance (aka "mini-app")
 const router = express.Router();
 
+const mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
+const { MONGODB_URI } = require('../config');
+const Note = require('../models/note');
+
 /* ========== GET/READ ALL ITEM ========== */
 router.get('/notes', (req, res, next) => {
+  const { searchTerm } = req.params;
+  
+  let filter = {};
 
-  console.log('Get All Notes');
-  res.json([
-    { id: 1, title: 'Temp 1' }, 
-    { id: 2, title: 'Temp 2' }, 
-    { id: 3, title: 'Temp 3' }
-  ]);
+  if (searchTerm) {
+    const re = new RegExp(searchTerm, 'i');
+    filter.title = { $regex: re };
+  }
 
-});
+  Note
+    .find(filter)
+      .then(results => {
+        res.json(results);
+      })
+      .catch(err => {
+        console.log(err);
+        res.status(500).json({ message: 'Internal server error' });
+      });
+  });
 
 /* ========== GET/READ A SINGLE ITEM ========== */
 router.get('/notes/:id', (req, res, next) => {
-
-  console.log('Get a Note');
-  res.json({ id: 2 });
+  console.log(typeof req.params.id);
+  Note
+    // .find({'_id': req.params.id})
+    .findById(req.params.id)
+    .then(results => {
+      res.json(results);
+    })
+    .catch(err => {
+      next(err);
+      console.log(err);
+      res.status(500).json({ message: 'Internal server error' });
+    });
 
 });
 
