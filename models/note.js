@@ -8,7 +8,7 @@ const noteSchema = mongoose.Schema({
   created: {type: Date, default: Date.now}
 });
 
-noteSchema.index( { title: 'text', content: 'text' });
+noteSchema.index( { title: 'text', content: 'text' }, {weights: {title: 5, content: 1} } );
 
 noteSchema.set('toObject', {
   transform: function (doc, ret) {
