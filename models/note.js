@@ -3,10 +3,12 @@
 const mongoose = require('mongoose');
 
 const noteSchema = mongoose.Schema({
-  title: {type: String, required: true},
-  content: {type: String},
+  title: {type: String, required: true, index: true},
+  content: {type: String, index: true},
   created: {type: Date, default: Date.now}
 });
+
+noteSchema.index( { title: 'text', content: 'text' });
 
 noteSchema.set('toObject', {
   transform: function (doc, ret) {

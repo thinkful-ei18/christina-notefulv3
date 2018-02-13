@@ -11,17 +11,13 @@ const Note = require('../models/note');
 
 /* ========== GET/READ ALL ITEM ========== */
 router.get('/notes', (req, res, next) => {
-  const { searchTerm } = req.params;
-  
-  let filter = {};
-
-  if (searchTerm) {
-    const re = new RegExp(searchTerm, 'i');
-    filter.title = { $regex: re };
-  }
+  const { searchTerm } = req.query;
 
   Note
-    .find(filter)
+    .find(
+      { $text: { $search: searchTerm} },
+      { score: { $meta: 'textScore' } } )
+      .sort({ score: { $meta: 'textScore' } })
       .then(results => {
         res.json(results).toObject;
       })
@@ -29,12 +25,11 @@ router.get('/notes', (req, res, next) => {
         console.log(err);
         res.status(500).json({ message: 'Internal server error' });
       });
-  });
+});
 
 /* ========== GET/READ A SINGLE ITEM ========== */
 router.get('/notes/:id', (req, res, next) => {
   Note
-    // .find({'_id': req.params.id})
     .findById(req.params.id)
     .then(result => {
       res.json(result).toObject;
