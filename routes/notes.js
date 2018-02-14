@@ -13,22 +13,34 @@ const Note = require('../models/note');
 router.get('/notes', (req, res, next) => {
   const { searchTerm } = req.query;
 
-  Note
-    .find(
-      { $text: { $search: searchTerm} },
-      { score: { $meta: 'textScore' } } )
-      .sort({ score: { $meta: 'textScore' } })
-      .then(results => {
-        res.json(results).toObject;
-      })
-      .catch(err => {
-        console.log(err);
-        res.status(500).json({ message: 'Internal server error' });
-      });
+  let filter = {};
+  let projection = {};
+  let sortBy = 'created'; 
+
+  if (searchTerm) {
+    filter.$text = { $search: searchTerm };
+    projection.score = { $meta: 'textScore' };
+    sortBy = projection;
+  }
+
+  Note.find(filter, projection)
+    .select('title content created')
+    .sort(sortBy)
+    .then(results => {
+      res.json(results);
+    })
+    .catch(next);
 });
 
 /* ========== GET/READ A SINGLE ITEM ========== */
 router.get('/notes/:id', (req, res, next) => {
+
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    const err = new Error('The `id` is not valid');
+    err.status = 400;
+    return next(err);
+  }
+
   Note
     .findById(req.params.id)
     .then(result => {
