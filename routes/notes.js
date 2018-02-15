@@ -8,8 +8,7 @@ const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 const { MONGODB_URI } = require('../config');
 const Note = require('../models/note');
-const Folder = require('../models/folder');
-// const folderRouter = require('./folders');
+
 
 /* ========== GET/READ ALL ITEM ========== */
 router.get('/notes', (req, res, next) => {
@@ -26,9 +25,7 @@ router.get('/notes', (req, res, next) => {
   }
 
   if ( folderId ) {
-    filter = {'folderId': folderId}
-
-
+    filter = {'folderId': folderId};
   }
 
   Note.find(filter, projection)
@@ -64,7 +61,7 @@ router.get('/notes/:id', (req, res, next) => {
 
 /* ========== POST/CREATE AN ITEM ========== */
 router.post('/notes', (req, res, next) => {
-  const { title, content } = req.body;
+  const { title, content, folderId } = req.body;
 
   if (!title) {
     const err = new Error('Missing `title` in request body');
@@ -72,10 +69,10 @@ router.post('/notes', (req, res, next) => {
     return next(err);
   }
 
-  const newItem = { title, content };
-  
+  const newItem = { title, content, folderId };
+  console.log(newItem);
   Note
-    .create({newItem})
+    .create(newItem)
     .then(result => {
       res.location(`${req.originalUrl}/${result.id}`).status(201).json(result).toObject;
     })
@@ -85,11 +82,12 @@ router.post('/notes', (req, res, next) => {
 /* ========== PUT/UPDATE A SINGLE ITEM ========== */
 router.put('/notes/:id', (req, res, next) => {
   const { id } = req.params;
-  const { title, content } = req.body;
+  const { title, content, folderId } = req.body;
 
   const updatedNote = {
     title,
-    content
+    content,
+    folderId
   };
 
   if (!title) {
