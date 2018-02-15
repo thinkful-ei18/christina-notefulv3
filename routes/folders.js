@@ -6,6 +6,7 @@ const router = express.Router();
 const mongoose = require('mongoose');
 
 const Folder = require('../models/folder');
+const Note = require('../models/note');
 
 // FOLDER ROUTER ENDPOINTS GO HERE
 
@@ -14,7 +15,7 @@ router.get('/folders', (req, res, next) => {
   Folder
     .find()
     .then(folders => {
-      res.json(folders);
+      res.json(folders).toObject;
     })
     .catch(next);
 });
@@ -32,7 +33,7 @@ router.get('/folders/:id', (req, res, next) => {
     .findById(req.params.id)
     .then(folder => {
       if (folder) {
-        res.json(folder);
+        res.json(folder).toObject;
       } else {
         next();
       }
@@ -55,7 +56,7 @@ router.post('/folders', (req, res, next) => {
     .create(newFolder)
     .then(folder => {
       if (folder) {
-        res.location(`${req.originalUrl}/${folder.id}`).status(201).json(folder);
+        res.location(`${req.originalUrl}/${folder.id}`).status(201).json(folder).toObject;
       } else {
         next();
       }
@@ -90,7 +91,7 @@ router.put('/folders/:id', (req, res, next) => {
     .findByIdAndUpdate(req.params.id, updateFolder)
     .then(folder => {
       if (folder) {
-        res.json(folder);
+        res.json(folder).toObject;
       } else {
         next();
       }
@@ -100,6 +101,15 @@ router.put('/folders/:id', (req, res, next) => {
 
 // DELETE FOLDER
 router.delete('/folders/:id', (req, res, next) => {
+  const notePromise = Note.find({'folderId': req.params.id});
+  notePromise.then(notes => {
+    if (notes.length > 0) {
+      const err = new Error('This folder contains notes it cannot be deleted');
+      err.status = 405;
+      return next(err);
+    }
+  });
+
   Folder
     .findByIdAndRemove(req.params.id)
     .then(count => {

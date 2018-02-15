@@ -12,6 +12,12 @@ const folderSchema = mongoose.Schema({
 folderSchema.plugin(beautifyUnique);
 const Folder = mongoose.model('Folder', folderSchema);
 
-folderSchema.index( { name: 'text'} );
+folderSchema.set('toObject', {
+  transform: function (doc, ret) {
+    ret.id = ret._id;
+    delete ret._id;
+    delete ret.__v;
+  }
+});
 
 module.exports = Folder; 
