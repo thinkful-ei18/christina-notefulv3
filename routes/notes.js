@@ -8,10 +8,12 @@ const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 const { MONGODB_URI } = require('../config');
 const Note = require('../models/note');
+const Folder = require('../models/folder');
+// const folderRouter = require('./folders');
 
 /* ========== GET/READ ALL ITEM ========== */
 router.get('/notes', (req, res, next) => {
-  const { searchTerm } = req.query;
+  const { searchTerm, folderId } = req.query;
 
   let filter = {};
   let projection = {};
@@ -23,8 +25,14 @@ router.get('/notes', (req, res, next) => {
     sortBy = projection;
   }
 
+  if ( folderId ) {
+    filter = {'folderId': folderId}
+
+
+  }
+
   Note.find(filter, projection)
-    .select('title content created')
+    .select('title content created folderId')
     .sort(sortBy)
     .then(results => {
       res.json(results);
@@ -44,30 +52,34 @@ router.get('/notes/:id', (req, res, next) => {
   Note
     .findById(req.params.id)
     .then(result => {
-      res.json(result).toObject;
+      if (result) {
+        res.json(result).toObject;
+      } else {
+        next();
+      }
     })
-    .catch(err => {
-      err.message('There was a problem with the server');
-      res.status(500).json({ message: 'Internal server error' });
-      next(err);
-    });
+    .catch(next);
 
 });
 
 /* ========== POST/CREATE AN ITEM ========== */
 router.post('/notes', (req, res, next) => {
   const { title, content } = req.body;
+
+  if (!title) {
+    const err = new Error('Missing `title` in request body');
+    err.status = 400;
+    return next(err);
+  }
+
+  const newItem = { title, content };
   
   Note
-    .create({
-      title,
-      content
+    .create({newItem})
+    .then(result => {
+      res.location(`${req.originalUrl}/${result.id}`).status(201).json(result).toObject;
     })
-    .then(note => res.json(note).toObject)
-    .catch(err => {
-      console.log(err);
-      res.status(500).json({ message: 'Internal server error' });
-    });
+    .catch(next);
 });
 
 /* ========== PUT/UPDATE A SINGLE ITEM ========== */
@@ -80,11 +92,22 @@ router.put('/notes/:id', (req, res, next) => {
     content
   };
 
+  if (!title) {
+    const err = new Error('Missing `title` in request body');
+    err.status = 400;
+    return next(err);
+  }
+
   Note
     .findByIdAndUpdate(id, { $set: updatedNote })
     .then(note => {
-      res.json(note).toObject;
+      if(note) {
+        res.json(note).toObject;
+      } else {
+        next();
+      }
     })
+
     .catch(err => {
       next(err);
       res.status(500).json({ message: 'Internal Server Error'});
@@ -97,12 +120,15 @@ router.delete('/notes/:id', (req, res, next) => {
 
   Note
     .findByIdAndRemove(id)
-    .then(() => {
-      res.status(204).end();
+    .then(count => {
+      if (count) {
+        res.status(204).end();
+      } else {
+        next();
+      }
     })
     .catch(err => {
       next(err);
-      res.status(500).json({ message: 'Internal Server Error'});
     });
 });
 

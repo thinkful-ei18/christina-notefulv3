@@ -125,15 +125,44 @@ describe('Noteful API - Notes', () => {
     });
 
     it('should return an error for incorrect id', () => {
-
+      const spy = chai.spy();
+      return chai.request(app)
+        .get('/v3/notes/HELLOHELLOHELLO')
+        .then(spy)
+        .then(() => {
+          expect(spy).to.not.have.been.called();
+        })
+        .catch(err => {
+          expect(err.response).to.have.status(400);
+        });
     });
-
-
   });
 
   describe('POST /v3/notes', () => {
     it('should create and return new note', () => {
+      const newNote = {
+        'title': 'The newest note on the block',
+        'content': 'Yo whats up',
+        'tags': []
+      };
 
+      let body;
+
+      return chai.request(app)
+        .post('/v3/notes')
+        .send(newNote)
+        .then(function (res) {
+          body = res.body;
+          expect(res).to.have.status(201);
+          expect(res).to.have.header('location');
+          expect(res).to.be.json;
+          expect(body).to.be.a('object');
+          expect(body).to.include.keys('id', 'title', 'content');
+        })
+        .then(data => {
+          expect(body.title).to.equal(data.title);
+          expect(body.content).to.equal(data.content);
+        });
     });
 
     it('should return an error when missing title from new note', () => {
