@@ -70,7 +70,6 @@ router.post('/notes', (req, res, next) => {
   }
 
   const newItem = { title, content, folderId };
-  console.log(newItem);
   Note
     .create(newItem)
     .then(result => {
@@ -108,7 +107,6 @@ router.put('/notes/:id', (req, res, next) => {
 
     .catch(err => {
       next(err);
-      res.status(500).json({ message: 'Internal Server Error'});
     });
 });
 

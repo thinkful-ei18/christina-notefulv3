@@ -14,9 +14,8 @@ mongoose.connect(MONGODB_URI)
   .then(() => Folder.insertMany(seedFolders))
   .then(() => Note.insertMany(seedNotes))
   .then(() => Note.createIndexes())
-  .then(() => Folder.createIndexes())
   .then(() => mongoose.disconnect())
   .catch(err => {
     console.error(`ERROR: ${err.message}`);
     console.error(err);
-  }); 
+  });

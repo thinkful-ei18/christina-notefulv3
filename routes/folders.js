@@ -101,6 +101,13 @@ router.put('/folders/:id', (req, res, next) => {
 
 // DELETE FOLDER
 router.delete('/folders/:id', (req, res, next) => {
+
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    const err = new Error('This `id` is not valid');
+    err.status = 400;
+    return next(err);
+  }
+
   const notePromise = Note.find({'folderId': req.params.id});
   notePromise.then(notes => {
     if (notes.length > 0) {
