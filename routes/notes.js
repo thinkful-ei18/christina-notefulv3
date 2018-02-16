@@ -12,7 +12,7 @@ const Note = require('../models/note');
 
 /* ========== GET/READ ALL ITEM ========== */
 router.get('/notes', (req, res, next) => {
-  const { searchTerm, folderId } = req.query;
+  const { searchTerm, folderId, tagId } = req.query;
 
   let filter = {};
   let projection = {};
@@ -28,9 +28,14 @@ router.get('/notes', (req, res, next) => {
     filter = {'folderId': folderId};
   }
 
+  if ( tagId ) {
+    filter = {'tagId': tagId};
+  }
+
   Note.find(filter, projection)
-    .select('title content created folderId')
+    .select('title content created folderId tags')
     .sort(sortBy)
+    .populate('tags')
     .then(results => {
       res.json(results);
     })
@@ -61,7 +66,7 @@ router.get('/notes/:id', (req, res, next) => {
 
 /* ========== POST/CREATE AN ITEM ========== */
 router.post('/notes', (req, res, next) => {
-  const { title, content, folderId } = req.body;
+  const { title, content, folderId, tags } = req.body;
 
   if (!title) {
     const err = new Error('Missing `title` in request body');
@@ -69,7 +74,14 @@ router.post('/notes', (req, res, next) => {
     return next(err);
   }
 
-  const newItem = { title, content, folderId };
+  // .forEach(tags => tags[tags]))
+  if (!mongoose.Types.ObjectId.isValid(tags[0])) {
+    const err = new Error('Tag id is not valid');
+    err.status = 400;
+    return next(err);
+  }
+
+  const newItem = { title, content, folderId, tags };
   Note
     .create(newItem)
     .then(result => {
@@ -81,16 +93,23 @@ router.post('/notes', (req, res, next) => {
 /* ========== PUT/UPDATE A SINGLE ITEM ========== */
 router.put('/notes/:id', (req, res, next) => {
   const { id } = req.params;
-  const { title, content, folderId } = req.body;
+  const { title, content, folderId, tags } = req.body;
 
   const updatedNote = {
     title,
     content,
-    folderId
+    folderId,
+    tags
   };
 
   if (!title) {
     const err = new Error('Missing `title` in request body');
+    err.status = 400;
+    return next(err);
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(tags[0])) {
+    const err = new Error('Tag id is not valid');
     err.status = 400;
     return next(err);
   }
