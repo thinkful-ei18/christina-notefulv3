@@ -28,14 +28,14 @@ router.get('/notes', (req, res, next) => {
     filter = {'folderId': folderId};
   }
 
-  if ( tagId ) {
-    filter = {'tagId': tagId};
-  }
+  // if ( tagId ) {
+  //   filter = {'tagsId': tagId};
+  // }
 
   Note.find(filter, projection)
     .select('title content created folderId tags')
     .sort(sortBy)
-    .populate('tags')
+    .populate({path: 'tags', select: 'id'})
     .then(results => {
       res.json(results);
     })
@@ -74,13 +74,17 @@ router.post('/notes', (req, res, next) => {
     return next(err);
   }
 
-  // .forEach(tags => tags[tags]))
-  if (!mongoose.Types.ObjectId.isValid(tags[0])) {
+  function mapTags () { 
+    return tags.map(tag => {
+    if (!mongoose.Types.ObjectId.isValid(tag)) {
     const err = new Error('Tag id is not valid');
     err.status = 400;
     return next(err);
   }
+  });
+}
 
+  mapTags();
   const newItem = { title, content, folderId, tags };
   Note
     .create(newItem)
@@ -108,11 +112,24 @@ router.put('/notes/:id', (req, res, next) => {
     return next(err);
   }
 
-  if (!mongoose.Types.ObjectId.isValid(tags[0])) {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    const err = new Error('The `id` is not valid');
+    err.status = 400;
+    return next(err);
+  }
+
+
+  function mapTags () { 
+    return tags.map(tag => {
+    if (!mongoose.Types.ObjectId.isValid(tag)) {
     const err = new Error('Tag id is not valid');
     err.status = 400;
     return next(err);
   }
+  });
+}
+
+  mapTags();
 
   Note
     .findByIdAndUpdate(id, { $set: updatedNote })

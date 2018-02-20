@@ -61,7 +61,7 @@ describe('Noteful API - Notes', () => {
           expect(res.body).to.be.a('array');
           expect(data).to.be.a('array');
           expect(res.body[0]).to.be.a('object');
-          expect(res.body[0]).to.have.keys('id', 'title', 'content', 'created', 'folderId');
+          expect(res.body[0]).to.have.keys('id', 'title', 'content', 'created', 'folderId', 'tags');
         });
     });
 
@@ -132,7 +132,7 @@ describe('Noteful API - Notes', () => {
           expect(res).to.be.json;
 
           expect(res.body).to.be.an('object');
-          expect(res.body).to.have.keys('id', 'title', 'content', 'created', 'folderId');
+          expect(res.body).to.have.keys('id', 'title', 'content', 'created', 'folderId', 'tags');
 
           expect(res.body.id).to.equal(data.id);
           expect(res.body.title).to.equal(data.title);
@@ -159,7 +159,8 @@ describe('Noteful API - Notes', () => {
       const newItem = {
         'title': 'I AM A NEW NOTE',
         'content': 'weeeee',
-        'folderId': '111111111111111111111101'
+        'folderId': '111111111111111111111101',
+        'tags': ['222222222222222222222200']
       };
 
       let body;
@@ -172,7 +173,7 @@ describe('Noteful API - Notes', () => {
           expect(res).to.have.header('location');
           expect(res).to.be.json;
           expect(body).to.be.a('object');
-          expect(body).to.include.keys('id', 'title', 'content', 'folderId');
+          expect(body).to.include.keys('id', 'title', 'content', 'folderId', 'tags');
           return Note.findById(body.id);
         })
         .then(data => {
@@ -209,7 +210,8 @@ describe('Noteful API - Notes', () => {
     it('should update the note', function () {
       const updateItem = {
         'title': 'ffgfgdf',
-        'content': 'fdfdgdfg'
+        'content': 'fdfdgdfg',
+        'tags': ['222222222222222222222202']
       };
       let data;
       return Note.findOneAndUpdate(updateItem).select('id title content')
@@ -223,7 +225,7 @@ describe('Noteful API - Notes', () => {
           expect(res).to.have.status(200);
           expect(res).to.be.json;
           expect(res.body).to.be.a('object');
-          expect(res.body).to.include.keys('id', 'title', 'content');
+          expect(res.body).to.include.keys('id', 'title', 'content', 'tags');
 
           expect(res.body.id).to.equal(data.id);
           expect(res.body.title).to.equal(updateItem.title);
@@ -232,21 +234,21 @@ describe('Noteful API - Notes', () => {
     });
 
 
-    it('should respond with a 404 for an invalid id', function () {
+    it('should respond with a 400 for an invalid id', function () {
       const updateItem = {
         'title': 'What about dogs?!',
         'content': 'woof woof'
       };
       const spy = chai.spy();
       return chai.request(app)
-        .put('/v3/notes/AAAAAAAAAAAAAAAAAAAAAAAA')
+        .put('/v3/notes/A9-9')
         .send(updateItem)
         .then(spy)
         .then(() => {
           expect(spy).to.not.have.been.called();
         })
         .catch(err => {
-          expect(err.response).to.have.status(404);
+          expect(err.response).to.have.status(400);
         });
     });
 

@@ -101,33 +101,17 @@ router.put('/tags/:id', (req, res, next) => {
 router.delete('/tags/:id', (req, res, next) => {
   const { id } = req.params;
 
-  const removeTagPromise = Tag.findByIdAndRemove(id);
-  const removeNotePromise = Note.update({ $pull: { Note: { tags: id } } });
-
-  return Promise.all(removeTagPromise, removeNotePromise)
-    .then((tags, notes) => {
-      if (tags.length === notes[0].tags.length) {
-        res.status(204).end();
-      } else {
-        next();
-      }
+  Tag
+    .findByIdAndRemove(req.params.id)
+    .then(() => {
+      return  Note
+        .update({},
+          { $pull: { tags: req.params.id} },
+          { multi: true }
+        );
     })
-    .catch(err => {
-      next(err);
-    });
-
-  // Tag
-  //   .findByIdAndRemove(id)
-  //   .then(nothing => {
-  //     if (nothing) {
-  //       res.status(204).end();
-  //     } else {
-  //       next();
-  //     }
-  //   })
-  //   .catch(err => {
-  //     next(err);
-  //   });
+    .then(() => res.status(204).end())
+    .catch(next);
 });
 
 

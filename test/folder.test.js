@@ -126,13 +126,96 @@ describe('Noteful API - Folders', () => {
     });
     //error if not folder with matching id is found
     //error if folder name already exists
+
+  it('should respond with a 404 for an invalid id', function () {
+    const updateItem = {
+      'name': 'What about dogs?!'
+    };
+    const spy = chai.spy();
+    return chai.request(app)
+      .put('/v3/folders/AAAAAAAAAAAAAAAAAAAAAAAA')
+      .send(updateItem)
+      .then(spy)
+      .then(() => {
+        expect(spy).to.not.have.been.called();
+      })
+      .catch(err => {
+        expect(err.response).to.have.status(404);
+      });
   });
 
-  describe('DELETE /v3/folders/:id', () => {
-    //delete note
-    //error if try to deelte folder with notes
-    //error if bad id
-    //error if invalid id
+  it('should return an error when missing "name" field', function () {
+    const updateItem = {
+      'foo': 'bar'
+    };
+    const spy = chai.spy();
+    return chai.request(app)
+      .put('/v3/folders/111111111111111111111100')
+      .send(updateItem)
+      .then(spy)
+      .then(() => {
+        expect(spy).to.not.have.been.called();
+      })
+      .catch(err => {
+        const res = err.response;
+        expect(res).to.have.status(400);
+        expect(res).to.be.json;
+        expect(res.body).to.be.a('object');
+        expect(res.body.message).to.equal('Missing folder `name` in request body');
+      });
   });
+
+  it('should return an error when given a duplicate name', function () {
+    const updateItem = {
+      'name': 'Personal'
+    };
+    const spy = chai.spy();
+    let data;
+    return Folder.findOne().select('id name')
+      .then(_data => {
+        data = _data;
+        return chai.request(app)
+          .put(`/v3/folders/${data.id}`)
+          .send(updateItem);
+      })
+      .catch(err => {          
+        const res = err.response;
+        expect(res).to.have.status(400);
+        expect(res).to.be.json;
+        expect(res.body).to.be.a('object');
+        expect(res.body.message).to.equal('The folder name already exists');
+      });
+  });
+
+});
+
+describe('DELETE /v3/folders/:id', function () {
+
+  it('should delete an item by id', function () {
+    let data;
+    return Folder.findOne().select('id name')
+      .then(_data => {
+        data = _data;
+        return chai.request(app).delete(`/v3/folders/${data.id}`);
+      })
+      .then(function (res) {
+        expect(res).to.have.status(204);
+      });
+  });
+
+  it('should respond with a 404 for an invalid id', function () {
+    const spy = chai.spy();
+    return chai.request(app)
+      .delete('/v3/folders/AAAAAAAAAAAAAAAAAAAAAAAA')
+      .then(spy)
+      .then(() => {
+        expect(spy).to.not.have.been.called();
+      })
+      .catch(err => {
+        expect(err.response).to.have.status(404);
+      });
+  });
+
+});
 
 });
