@@ -7,7 +7,7 @@ const api = (function () {
       type: 'GET',
       url: path,
       dataType: 'json',
-      data: query
+      data: query,
     });
   };
   const details = function(path) {

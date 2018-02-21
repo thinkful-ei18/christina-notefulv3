@@ -1,5 +1,10 @@
 'use strict';
 
+require('dotenv').config();
+
+const jwtStragety = require('./passport/jwt');
+const localStragety = require('./passport/local');
+
 const express = require('express');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
@@ -13,8 +18,14 @@ const tagsRouter = require('./routes/tags');
 const usersRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
 
+// Use passport stragety 
+passport.use(localStragety);
+passport.use(jwtStragety);
+
+
 // Create an Express application
 const app = express();
+
 
 // Log all requests. Skip logging during
 app.use(morgan(process.env.NODE_ENV === 'development' ? 'dev' : 'common', {
@@ -27,12 +38,18 @@ app.use(express.static('public'));
 // Parse request body
 app.use(express.json());
 
-// Mount router on "/api"
+// Unproteted endpoints
+app.use('/v3', usersRouter);
+app.use('/v3', authRouter);
+
+// Endpoints below this require a valid JWT
+app.use(passport.authenticate('jwt', {session:false, failWithError:true}));
+
+// Protected endpoints
 app.use('/v3', notesRouter);
 app.use('/v3', foldersRouter);
 app.use('/v3', tagsRouter);
-app.use('/v3', usersRouter);
-app.use('/v3', authRouter);
+
 
 // Catch-all 404
 app.use(function (req, res, next) {
