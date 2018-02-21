@@ -131,6 +131,8 @@ const noteful = (function () {
     return tags ? tags.map(tag => tag.name).join(', ') : '';
   }
 
+  
+
   /**
    * NOTES EVENT LISTENERS AND HANDLERS
    */
@@ -396,6 +398,8 @@ const noteful = (function () {
 
       api.create('/v3/login', loginUser)
         .then(response => {
+          store.authToken = response.authToken; 
+          store.authorized = true;
           store.authorized = true;
           loginForm[0].reset();
 

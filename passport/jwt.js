@@ -2,7 +2,7 @@
 
 // const passport = require('passport');
 const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
-const JWT_SECRET = require('../config');
+const { JWT_SECRET } = require('../config');
 
 const options = {
   secretOrKey: JWT_SECRET,
