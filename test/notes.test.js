@@ -4,9 +4,12 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const chaiSpies = require('chai-spies');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 
 const { TEST_MONGODB_URI } = require('../config');
+const { JWT_SECRET } = require('../config');
 
+const User = require('../models/user');
 const Note = require('../models/note');
 const Folder = require('../models/folder');
 const seedNotes = require('../db/seed/notes');
@@ -19,19 +22,29 @@ chai.use(chaiHttp);
 chai.use(chaiSpies);
 
 describe('Noteful API - Notes', function () {
+  const username = 'testingUser';
+  const password = 'testingpassword';
+  const fullName = 'Testy McTesterson';
+
+
+
   before(function () {
     return mongoose.connect(TEST_MONGODB_URI)
       .then(() => mongoose.connection.db.dropDatabase());
   });
 
   beforeEach(function () {
+    const userPasswordPromise = User.hashPassword(password);
+    const userCreatePromise = User.create([username, password, fullName]);
     const noteInsertPromise = Note.insertMany(seedNotes);
     const folderInsertPromise = Folder.insertMany(seedFolders);
-    return Promise.all([noteInsertPromise, folderInsertPromise])
+
+    return Promise.all([userPasswordPromise, userCreatePromise, noteInsertPromise, folderInsertPromise])
       .then(() => Note.createIndexes());
   });
 
   afterEach(function () {
+    User.remove({});
     return mongoose.connection.db.dropDatabase()
       .catch(err => console.error(err));
   });
@@ -44,11 +57,28 @@ describe('Noteful API - Notes', function () {
   describe('GET /v3/notes', function () {
 
     it('should return the correct number of Notes', function () {
-      const dbPromise = Note.find();
-      const apiPromise = chai.request(app).get('/v3/notes');
+      const token = jwt.sign(
+        {
+          user: {
+            username,
+            password
+          }
+        },
+        JWT_SECRET,
+        {
+          algorithm: 'HS256',
+          subject: username,
+          expiresIn: '7d'
+        }
+      );
 
-      return Promise.all([dbPromise, apiPromise])
-        .then(([data, res]) => {
+      // const dbPromise = Note.find();
+      // return Promise.all([dbPromise, apiPromise])
+      return chai
+      .request(app)
+      .get('/v3/notes')
+      .set('authorization', `Bearer ${token}`)
+          .then(([data, res]) => {
           expect(res).to.have.status(200);
           expect(res).to.be.json;
           expect(res.body).to.be.a('array');
