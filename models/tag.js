@@ -3,7 +3,8 @@
 const mongoose = require('mongoose');
 
 const tagSchema = new mongoose.Schema({
-  name: { type: String, unique: true}
+  name: { type: String},
+  userId: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true}
 });
 
 tagSchema.set('toObject', {

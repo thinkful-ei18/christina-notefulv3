@@ -1,39 +1,41 @@
 'use strict';
 
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const { MONGODB_URI } = require('../config');
 const Note = require('../models/note');
 const Folder = require('../models/folder');
 const Tag = require('../models/tag');
+const User = require('../models/user');
 
 const seedNotes = require('../db/seed/notes');
 const seedFolders = require('../db/seed/folders');
 const seedTags = require('../db/seed/tags');
-console.log(seedTags);
-console.log(MONGODB_URI);
+const seedUsers = require('../db/seed/user.json');
+
 
 mongoose.connect(MONGODB_URI)
   .then(() => mongoose.connection.db.dropDatabase())
 
-  // In Serial
-  // .then(() => Note.insertMany(seedNotes))
-  // .then(() => Folder.insertMany(seedFolders))
-  // .then(() => Tag.insertMany(seedTags))
-  // .then(() => Note.createIndexes())
-  // .then(() => Folder.createIndexes())
-  // .then(() => Tag.createIndexes())
-  // .then(() => mongoose.disconnect())  
-
   // In Parallel 
   .then(() => {
+    return Promise.all(seedUsers.map( user => bcrypt.hash(user.password, 10)));
+  })
+  .then( digests => {
+    seedUsers.forEach((user, i) => user.password = digests[i]);
     return Promise.all([
       Note.insertMany(seedNotes),
+      Note.createIndexes(), // trigger text indexing for $search
+
       Folder.insertMany(seedFolders),
+      Folder.createIndexes(), // trigger text indexing for $search
+
       Tag.insertMany(seedTags),
-      Note.createIndexes(),
-      Folder.createIndexes(),
-      Tag.createIndexes()
+      Tag.createIndexes(), // trigger text indexing for $search
+      
+      User.insertMany(seedUsers),
+      User.createIndexes(), // trigger text indexing for $search
     ]);
   })
   .then(() => mongoose.disconnect())
@@ -42,13 +44,14 @@ mongoose.connect(MONGODB_URI)
     console.error(err);
   });
 
+Note.on('index', () => {
+  console.info('notes index is done building');
+});
 
-Note.on('index', function (err) {
-  console.log('notes index is done building');
+Folder.on('index', () => {
+  console.info('folder index is done building');
 });
-Folder.on('index', function (err) {
-  console.log('folder index is done building');
-});
-Tag.on('index', function (err) {
-  console.log('tag index is done building');
+
+Tag.on('index', () => {
+  console.info('tag index is done building');
 });

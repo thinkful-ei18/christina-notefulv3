@@ -1,0 +1,20 @@
+[
+  {
+  "fullName": "Bumper the cat",
+  "username": "bumper2",
+  "password": "catsarecool",
+  "_id": "333333333333333333333300"
+  },
+  {
+    "_id": "333333333333333333333301",
+    "fullname": "Christina",
+    "username": "christina",
+    "password": "password"
+  },
+  {
+    "_id": "333333333333333333333302",
+    "fullname": "Fuzzy the cat",
+    "username": "fuzzy",
+    "password": "passwordcat"
+  }  
+]
