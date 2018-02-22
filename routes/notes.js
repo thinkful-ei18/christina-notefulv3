@@ -6,6 +6,8 @@ const router = express.Router();
 const mongoose = require('mongoose');
 
 const Note = require('../models/note');
+const Folder = require('../models/folder');
+const Tag = require('../models/tag');
 
 /* ========== GET/READ ALL ITEMS ========== */
 router.get('/notes', (req, res, next) => {
@@ -81,13 +83,51 @@ router.post('/notes', (req, res, next) => {
     return next(err);
   }
 
-  const newItem = { title, content, folderId, tags, userId };
+  const newItem = { 
+    title, 
+    content, 
+    folderId, 
+    tags, 
+    userId };
 
-  Note.create(newItem)
-    .then(result => {
+    function validateFolder(fId, uId) {
+      if(!fId) {
+        return Promise.resolve('valid');
+      }
+      return Folder
+        .find({_id: fId, userId: uId})
+        .then((result) => {
+          if (!result.length) {
+            return Promise.reject('invalid');
+          }
+        });
+    }
+
+    function validateTags(tags, uId) {
+      console.log(tags + ' TAG IDS');
+      if(!tags) {
+        return Promise.resolve('valid');
+      }
+      return Tag
+        .find( {_id: tags, userId: uId} )
+        .then((result) => {
+          console.log(result + ' RESULT');
+          if (!result.length) {
+            return Promise.reject('invalid');
+          }
+        });
+      }
+
+    Promise.all([validateFolder(folderId, userId), validateTags(tags, userId)])
+      .then( () => {
+      return Note.create(newItem)
+      .catch(next);
+      })
+      .then(result => {
       res.location(`${req.originalUrl}/${result.id}`).status(201).json(result);
-    })
-    .catch(next);
+      })
+      .catch(next);
+  
 });
 
 /* ========== PUT/UPDATE A SINGLE ITEM ========== */
@@ -110,7 +150,7 @@ router.put('/notes/:id', (req, res, next) => {
     return next(err);
   }
 
-  const updateItem = { title, content, tags, userId };
+  const updateItem = { title, content, folderId, tags, userId };
   
   if (mongoose.Types.ObjectId.isValid(folderId)) {
     updateItem.folderId = folderId;
@@ -118,7 +158,35 @@ router.put('/notes/:id', (req, res, next) => {
 
   const options = { new: true };
 
-  Note.findByIdAndUpdate(id, updateItem, options)
+  function validateFolder(fId, uId) {
+    if(!fId) {
+      return Promise.resolve('valid');
+    }
+    return Folder
+      .find({_id: fId, userId: uId})
+      .then((result) => {
+        if (!result.length) {
+          return Promise.reject('invalid');
+        }
+      });
+  }
+
+  function validateTags(tags, uId) {
+    if(!tags) {
+      return Promise.resolve('valid');
+    }
+    return Tag
+      .find( {_id: tags, userId: uId} )
+      .then((result) => {
+        if (!result.length) {
+          return Promise.reject('invalid');
+        }
+      });
+    }
+
+  Promise.all([validateFolder(folderId, userId), validateTags(tags, userId)])
+    .then( () => {
+      Note.findByIdAndUpdate(id, updateItem, options)
     .select('id title content folderId tags userId')
     .populate('tags')
     .then(result => {
@@ -129,6 +197,9 @@ router.put('/notes/:id', (req, res, next) => {
       }
     })
     .catch(next);
+    })
+    .catch(next);
+  
 });
 
 /* ========== DELETE/REMOVE A SINGLE ITEM ========== */

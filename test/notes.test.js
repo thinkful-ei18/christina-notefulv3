@@ -40,6 +40,7 @@ describe('Noteful API - Notes', function () {
     return mongoose.disconnect();
   });
 
+
   describe('GET /v3/notes', function () {
 
     it('should return the correct number of Notes', function () {
@@ -52,6 +53,7 @@ describe('Noteful API - Notes', function () {
           expect(res).to.be.json;
           expect(res.body).to.be.a('array');
           expect(res.body).to.have.length(data.length);
+          expect(res.body.user.id).to.equal(data.user.id);
         });
     });
 
