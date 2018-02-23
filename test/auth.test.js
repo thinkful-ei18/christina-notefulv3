@@ -17,13 +17,10 @@ const expect = chai.expect;
 chai.use(chaiHttp);
 chai.use(chaiSpies);
 
-describe('Noteful API - Auth', function () {
-  const user =  {
-  'fullName': 'Bumper the cat',
-  'username': 'bumper2',
-  'password': 'catsarecool',
-  '_id': '333333333333333333333300'
-  };
+describe.skip('Noteful API - Auth', function () {
+  const username = 'bumper2';
+  const password = 'catsarecool';
+  let id;
 
   let token;
   before(function () {
@@ -32,25 +29,11 @@ describe('Noteful API - Auth', function () {
   });
 
   beforeEach(function () {
-    const userPasswordPromise = User.hashPassword(user.password);
-    const userCreatePromise = User.create(user);
-    user.id = user._id;
-    token = jwt.sign(
-      {
-        user: user
-      },
-      JWT_SECRET,
-      {
-        algorithm: 'HS256',
-        subject: user.username,
-        expiresIn: '7d'
-      }
-    );
-    
-
-    return Promise.all([userPasswordPromise, userCreatePromise])
-      .then(() => {
-      });
+    return User.hashPassword(password)
+    .then(password => User.create({ username, password }))
+    .then(user => {
+      id = user.id;
+    });
   });
 
   afterEach(function () {
@@ -63,7 +46,7 @@ describe('Noteful API - Auth', function () {
     return mongoose.disconnect();
   });
 
-  describe('/v3/auth', () => {
+  describe('/v3/login', () => {
     it('should return a valid token', () => {
 
     });

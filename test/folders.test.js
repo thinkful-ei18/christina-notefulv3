@@ -37,7 +37,7 @@ describe('Noteful API - Folders', function () {
   beforeEach(function () {
     const userPasswordPromise = User.hashPassword(testUser.password);
     const userCreatePromise = User.create(testUser);
-    const folderInsertPromise = Folder.insertMany(seedFolders)
+    const folderInsertPromise = Folder.insertMany(seedFolders);
     testUser.id = testUser._id;
     token = jwt.sign(
       {

@@ -11,9 +11,27 @@ router.post('/users', (req, res, next) => {
   const requiredFields = ['username', 'password'];
 
   const missingField = requiredFields.find(field => !(field in req.body));
-  const fieldString = requiredFields.find(field => typeof req.body[field] !== 'string');
-  const whiteSpace = requiredFields.find(field => req.body[field].indexOf(' ') > 0 );
+  const fieldString = requiredFields.find(field => field in req.body && typeof req.body[field] !== 'string');
+  const whiteSpace = requiredFields.find(field => typeof req.body[field] === 'string' && req.body[field].indexOf(' ') > 0 );
 
+  if (missingField) {
+    const err = new Error(`Missing ${missingField} in request body`);
+    err.status = 422;
+    return next(err);
+  }
+
+  if (fieldString) {
+    const err = new Error(`Field: '${fieldString}' must be type String`);
+    err.status = 422;
+    return next(err);
+  }
+
+  if (whiteSpace) {
+    const err = new Error(`${whiteSpace} should not contain whitespace`);
+    err.status = 422;
+    return next(err);
+  }
+  
   const sizeFields = {
     username: {
       min: 1
@@ -35,23 +53,7 @@ router.post('/users', (req, res, next) => {
             req.body[field].trim().length > sizeFields[field].max
   );
 
-  if (missingField) {
-    const err = new Error(`Missing ${missingField} in request body`);
-    err.status = 422;
-    return next(err);
-  }
 
-  if (fieldString) {
-    const err = new Error(`${fieldString} is not a string`);
-    err.status = 422;
-    return next(err);
-  }
-
-  if (whiteSpace) {
-    const err = new Error(`${whiteSpace} should not contain whitespace`);
-    err.status = 422;
-    return next(err);
-  }
 
   if (tooSmallField || tooLargeField) {
     return res.status(422).json({
