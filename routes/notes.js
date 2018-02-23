@@ -9,6 +9,33 @@ const Note = require('../models/note');
 const Folder = require('../models/folder');
 const Tag = require('../models/tag');
 
+/* Helpers */
+function validateFolder(fId, uId) {
+  if(!fId) {
+    return Promise.resolve('valid');
+  }
+  return Folder
+    .find({_id: fId, userId: uId})
+    .then((result) => {
+      if (!result.length) {
+        return Promise.reject('folderInvalid');
+      }
+    });
+}
+
+function validateTags(tags, uId) {
+  if(!tags) {
+    return Promise.resolve('valid');
+  }
+  return Tag
+    .find( {_id: tags, userId: uId} )
+    .then((result) => {
+      if (!result.length) {
+        return Promise.reject('tagsInvalid');
+      }
+    });
+  }
+
 /* ========== GET/READ ALL ITEMS ========== */
 router.get('/notes', (req, res, next) => {
   const { searchTerm, folderId, tagId } = req.query;
@@ -90,34 +117,6 @@ router.post('/notes', (req, res, next) => {
     tags, 
     userId };
 
-    function validateFolder(fId, uId) {
-      if(!fId) {
-        return Promise.resolve('valid');
-      }
-      return Folder
-        .find({_id: fId, userId: uId})
-        .then((result) => {
-          if (!result.length) {
-            return Promise.reject('invalid');
-          }
-        });
-    }
-
-    function validateTags(tags, uId) {
-      console.log(tags + ' TAG IDS');
-      if(!tags) {
-        return Promise.resolve('valid');
-      }
-      return Tag
-        .find( {_id: tags, userId: uId} )
-        .then((result) => {
-          console.log(result + ' RESULT');
-          if (!result.length) {
-            return Promise.reject('invalid');
-          }
-        });
-      }
-
     Promise.all([validateFolder(folderId, userId), validateTags(tags, userId)])
       .then( () => {
       return Note.create(newItem)
@@ -157,32 +156,6 @@ router.put('/notes/:id', (req, res, next) => {
   }
 
   const options = { new: true };
-
-  function validateFolder(fId, uId) {
-    if(!fId) {
-      return Promise.resolve('valid');
-    }
-    return Folder
-      .find({_id: fId, userId: uId})
-      .then((result) => {
-        if (!result.length) {
-          return Promise.reject('invalid');
-        }
-      });
-  }
-
-  function validateTags(tags, uId) {
-    if(!tags) {
-      return Promise.resolve('valid');
-    }
-    return Tag
-      .find( {_id: tags, userId: uId} )
-      .then((result) => {
-        if (!result.length) {
-          return Promise.reject('invalid');
-        }
-      });
-    }
 
   Promise.all([validateFolder(folderId, userId), validateTags(tags, userId)])
     .then( () => {

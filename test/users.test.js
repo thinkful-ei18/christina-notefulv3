@@ -16,14 +16,23 @@ const expect = chai.expect;
 chai.use(chaiHttp);
 chai.use(chaiSpies);
 
-describe('Noteful API - Folders', function () {
+describe('Noteful API - Users', function () {
+  const username = 'testingUser';
+  const password = 'testingpassword';
+  const fullName = 'Testy McTesterson';
+
   before(function () {
     return mongoose.connect(TEST_MONGODB_URI)
       .then(() => mongoose.connection.db.dropDatabase());
   });
 
   beforeEach(function () {
-    return User.insertMany(seedUsers);
+    const userPasswordPromise = User.hashPassword(password);
+    const userCreatePromise = User.create([username, password, fullName]);
+    const seedUsersPromise = User.insertMany(seedUsers);
+
+    return Promise.all([userPasswordPromise, userCreatePromise, seedUsersPromise])
+      .then(() => {});
   });
 
   afterEach(function () {
@@ -34,4 +43,14 @@ describe('Noteful API - Folders', function () {
     return mongoose.disconnect();
   });
 
+
+
+
+
+
+
+
+
+
+  
 });
