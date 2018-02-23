@@ -33,21 +33,34 @@ describe('Basic Express setup', () => {
 
   describe('Express static', () => {
 
-    it('GET request "/" should return the index page', () => {
-      return chai.request(app)
-        .get('/')
-        .then(function (res) {
-          expect(res).to.exist;
-          expect(res).to.have.status(200);
-          expect(res).to.be.html;
-        });
-    });
+    // it('GET request "/" should return the index page', () => {
+    //   return chai.request(app)
+    //     .get('/')
+    //     .then(function (res) {
+    //       expect(res).to.exist;
+    //       expect(res).to.have.status(200);
+    //       expect(res).to.be.html;
+    //     });
+    // });
 
   });
 
   describe('404 handler', () => {
 
-    it('should respond with 404 when given a bad path', () => {
+    // it('should respond with 404 when given a bad path', () => {
+    //   const spy = chai.spy();
+    //   return chai.request(app)
+    //     .get('/bad/path')
+    //     .then(spy)
+    //     .then(() => {
+    //       expect(spy).to.not.have.been.called();
+    //     })
+    //     .catch(err => {
+    //       expect(err.response).to.have.status(404);
+    //     });
+    // });
+
+    it('should respond with 401 when unauthorized', () => {
       const spy = chai.spy();
       return chai.request(app)
         .get('/bad/path')
@@ -56,7 +69,7 @@ describe('Basic Express setup', () => {
           expect(spy).to.not.have.been.called();
         })
         .catch(err => {
-          expect(err.response).to.have.status(404);
+          expect(err.response).to.have.status(401);
         });
     });
 
