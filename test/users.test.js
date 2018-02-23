@@ -17,7 +17,7 @@ const expect = chai.expect;
 chai.use(chaiHttp);
 chai.use(chaiSpies);
 
-describe.only('Noteful API - Users', function () {
+describe('Noteful API - Users', function () {
 const username = 'samTheDog';
 const password = 'dogsruleforever';
 let fullName = 'Tester McTesterson';
@@ -94,6 +94,18 @@ let id;
           const res = err.response;
           expect(res).to.have.status(422);
           expect(res.body.message).to.equal('Missing username in request body');
+        });
+    });
+
+    it('should reject a user with no username', () => {
+      return chai
+        .request(app)
+        .post('/v3/users')
+        .send({username})
+        .catch((err) => {
+          const res = err.response;
+          expect(res).to.have.status(422);
+          expect(res.body.message).to.equal('Missing password in request body');
         });
     });
 
@@ -180,16 +192,5 @@ let id;
         expect(res.body.message).to.equal('Field: \'password\' must be type String');
       });
     });
-
-
-
-
-
   });
-
-
-
-
-
-
 });
