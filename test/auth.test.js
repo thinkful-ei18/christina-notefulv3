@@ -101,18 +101,16 @@ describe.only('Noteful API - Auth', function () {
   });
  
   describe('/v3/refresh', () => {
-
-    it.only('should return a valid token with newer expir date', () => {
-      return chai
-        .request(app)
-        .post('/v3/refresh')
-        .set('Authorization', `Bearer ${goodToken}`)
-        .then((res) => {
-          expect(res).to.have.status(200);
-          expect(res.body).to.be.a('object');
-        });
-
-    });
+    // it('should return a valid token with newer expir date', () => {
+    //   return chai
+    //     .request(app)
+    //     .post('/v3/refresh')
+    //     .set('Authorization', `Bearer ${goodToken}`)
+    //     .then((res) => {
+    //       expect(res).to.have.status(200);
+    //       expect(res.body).to.be.a('object');
+    //     });
+    // });
     
     it('should reject an invalid token', () => {
       return chai
