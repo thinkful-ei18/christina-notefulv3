@@ -17,7 +17,7 @@ const expect = chai.expect;
 chai.use(chaiHttp);
 chai.use(chaiSpies);
 
-describe.only('Noteful API - Auth', function () {
+describe('Noteful API - Auth', function () {
   const username = 'bumper23';
   const password = 'catsarecool';
   const fullName = 'A cat';
@@ -121,7 +121,7 @@ describe.only('Noteful API - Auth', function () {
           const res = err.response;
           expect(res).to.have.status(401);
           expect(res.body.message).to.equal('Unauthorized');
-        });
+        }); 
     });
 
     it('should reject with expired token', () => {
