@@ -20,7 +20,7 @@ chai.use(chaiSpies);
 describe('Noteful API - Auth', function () {
   const username = 'bumper23';
   const password = 'catsarecool';
-  const fullName = 'A cat';
+  const fullName = 'A cat'; 
   let id;
 
   let goodToken;
